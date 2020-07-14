@@ -19,6 +19,7 @@ def log_create(sender, instance, created, **kwargs):
             instance,
             action=LogEntry.Action.CREATE,
             changes=json.dumps(changes),
+            **kwargs
         )
 
 
@@ -44,6 +45,7 @@ def log_update(sender, instance, **kwargs):
                     instance,
                     action=LogEntry.Action.UPDATE,
                     changes=json.dumps(changes),
+                    **kwargs
                 )
 
 
@@ -60,4 +62,5 @@ def log_delete(sender, instance, **kwargs):
             instance,
             action=LogEntry.Action.DELETE,
             changes=json.dumps(changes),
+            **kwargs
         )
