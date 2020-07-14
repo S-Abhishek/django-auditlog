@@ -39,7 +39,7 @@ class LogEntryManager(models.Manager):
         pk = self._get_pk_value(instance)
 
         if changes is not None:
-            db_override = kwargs.get('db_override', None)
+            db_override = kwargs.pop('db_override', None)
             
             if db_override is not None:
                 kwargs.setdefault('content_type', ContentType.objects.db_manager(db_override).get_for_model(instance))
