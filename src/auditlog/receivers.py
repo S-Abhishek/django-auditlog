@@ -33,7 +33,7 @@ def log_update(sender, instance, **kwargs):
     if instance.pk is not None:
         db_override = kwargs.get('using', None)
         try:
-            if using is not None:
+            if db_override is not None:
                 old = sender.objects.using(db_override).get(pk=instance.pk)
             else:
                 old = sender.objects.get(pk=instance.pk)
