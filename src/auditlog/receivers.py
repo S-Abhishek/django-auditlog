@@ -14,12 +14,13 @@ def log_create(sender, instance, created, **kwargs):
     """
     if created:
         changes = model_instance_diff(None, instance)
+        db_override = kwargs.get('using', None)
 
         log_entry = LogEntry.objects.log_create(
             instance,
             action=LogEntry.Action.CREATE,
             changes=json.dumps(changes),
-            **kwargs
+            db_override=db_override
         )
 
 
@@ -30,8 +31,12 @@ def log_update(sender, instance, **kwargs):
     Direct use is discouraged, connect your model through :py:func:`auditlog.registry.register` instead.
     """
     if instance.pk is not None:
+        db_override = kwargs.get('using', None)
         try:
-            old = sender.objects.get(pk=instance.pk)
+            if using is not None:
+                old = sender.objects.using(db_override).get(pk=instance.pk)
+            else:
+                old = sender.objects.get(pk=instance.pk)
         except sender.DoesNotExist:
             pass
         else:
@@ -45,7 +50,7 @@ def log_update(sender, instance, **kwargs):
                     instance,
                     action=LogEntry.Action.UPDATE,
                     changes=json.dumps(changes),
-                    **kwargs
+                    db_override=db_override
                 )
 
 
@@ -57,10 +62,11 @@ def log_delete(sender, instance, **kwargs):
     """
     if instance.pk is not None:
         changes = model_instance_diff(instance, None)
+        db_override = kwargs.get('using', None)
 
         log_entry = LogEntry.objects.log_create(
             instance,
             action=LogEntry.Action.DELETE,
             changes=json.dumps(changes),
-            **kwargs
+            db_override=db_override
         )
