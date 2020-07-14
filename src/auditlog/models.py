@@ -59,10 +59,19 @@ class LogEntryManager(models.Manager):
             # Delete log entries with the same pk as a newly created model. This should only be necessary when an pk is
             # used twice.
             if kwargs.get('action', None) is LogEntry.Action.CREATE:
-                if kwargs.get('object_id', None) is not None and self.filter(content_type=kwargs.get('content_type'), object_id=kwargs.get('object_id')).exists():
-                    self.filter(content_type=kwargs.get('content_type'), object_id=kwargs.get('object_id')).delete()
+                
+                if db_override is not None:
+                    content_type_object_pair = self.using(db_override).filter(content_type=kwargs.get('content_type'), object_id=kwargs.get('object_id'))
+                else:
+                    content_type_object_pair = self.filter(content_type=kwargs.get('content_type'), object_id=kwargs.get('object_id'))
+                
+                if kwargs.get('object_id', None) is not None and content_type_object_pair.exists():
+                    content_type_object_pair.delete()
+                elif db_override is not None:
+                    self.using(db_override).filter(content_type=kwargs.get('content_type'), object_pk=kwargs.get('object_pk', '')).delete()
                 else:
                     self.filter(content_type=kwargs.get('content_type'), object_pk=kwargs.get('object_pk', '')).delete()
+                
             # save LogEntry to same database instance is using
             db = instance._state.db
             return self.create(**kwargs) if db is None or db == '' else self.using(db).create(**kwargs)
